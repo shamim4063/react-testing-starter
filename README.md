@@ -1,7 +1,3 @@
-# Testing React Apps
-
-This is the starter project for my Reacting testing course where you'll learn everything you need to know to effectively test React apps.
-
 ## About this Project 
 
 This is a React app built with the following technologies and libraries: 
