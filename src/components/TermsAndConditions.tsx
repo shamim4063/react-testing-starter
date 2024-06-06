@@ -22,7 +22,11 @@ const TermsAndConditions = () => {
           I accept the terms and conditions.
         </label>
       </div>
-      <button disabled={!isChecked} className="btn">
+      <button
+        disabled={!isChecked}
+        className="btn"
+        onClick={() => alert("Thank you for submission.")}
+      >
         Submit
       </button>
     </div>
