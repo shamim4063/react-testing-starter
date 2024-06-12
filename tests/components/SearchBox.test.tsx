@@ -1,13 +1,18 @@
 import { render, screen } from "@testing-library/react";
 import SearchBox from "../../src/components/SearchBox";
-// import userEvent from "@testing-library/user-event";
+import userEvent from "@testing-library/user-event";
 
 describe("SearchBox", () => {
   const renderSearch = () => {
-    render(<SearchBox onChange={vi.fn()} />);
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+
+    render(<SearchBox onChange={onChange} />);
+
     return {
-      input: screen.queryByPlaceholderText("Search..."),
-      onChange: vi.fn(),
+      input: screen.queryByPlaceholderText(/search/i),
+      user,
+      onChange
     };
   };
 
@@ -17,10 +22,16 @@ describe("SearchBox", () => {
   });
 
   it("should call onChange when Enter is pressed", async () => {
-    // const { input, onChange } = renderSearch();
-    // const searchTerm = "Searchterm";
-    // const user = userEvent.setup();
-
-    // await user.type(input, searchTerm);
+    const { input, user, onChange } = renderSearch();
+    const searchTerm = "SearchTerm";
+    await user.type(input, searchTerm + "{enter}");
+    expect(onChange).toHaveBeenCalledWith(searchTerm);
   });
+
+  it("should not call onChange when input field is empty", async () => {
+    const { input, user, onChange } = renderSearch();
+    await user.type(input, "{enter}");
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
 });
