@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 
 import ProductDetail from "../../src/components/ProductDetail";
+import AllProvider from "../Allprovider";
 import { db } from "../mocks/db";
 import { server } from "../mocks/server";
 
@@ -20,7 +21,8 @@ describe("ProductDetail", () => {
     const product = db.product.findFirst({
       where: { id: { equals: productId } },
     });
-    render(<ProductDetail productId={productId} />);
+
+    render(<ProductDetail productId={productId} />, { wrapper: AllProvider });
 
     const productName = await screen.findByText(new RegExp(product!.name));
     const productPrice = await screen.findByText(
@@ -31,10 +33,10 @@ describe("ProductDetail", () => {
     expect(productPrice).toBeInTheDocument();
   });
 
-  it("should show error when there is an error", async() => {
+  it("should show error when there is an error", async () => {
     server.use(http.get("products/:id", () => HttpResponse.error()));
-    
-    render(<ProductDetail productId={productId}/>);
+
+    render(<ProductDetail productId={productId} />, { wrapper: AllProvider });
 
     const message = await screen.findByText(/error/i);
     expect(message).toBeInTheDocument();
