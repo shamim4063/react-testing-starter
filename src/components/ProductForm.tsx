@@ -3,12 +3,10 @@ import { Box, Button, Select, TextField } from "@radix-ui/themes";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+
 import { Product } from "../entities";
 import useCategories from "../hooks/useCategories";
-import {
-  ProductFormData,
-  productFormSchema,
-} from "../validationSchemas/productSchema";
+import { ProductFormData, productFormSchema } from "../validationSchemas/productSchema";
 import ErrorMessage from "./ErrorMessage";
 
 interface Props {
@@ -35,6 +33,7 @@ const ProductForm = ({ product, onSubmit }: Props) => {
   return (
     <form
       name="product"
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       onSubmit={handleSubmit(async (formData) => {
         try {
           setSubmitting(true);
@@ -49,7 +48,7 @@ const ProductForm = ({ product, onSubmit }: Props) => {
     >
       <Box>
         <TextField.Root className="max-w-sm">
-          <TextField.Input placeholder="Name" {...register("name")} size="3" />
+          <TextField.Input placeholder="Name" autoFocus {...register("name")} size="3" />
         </TextField.Root>
         <ErrorMessage error={errors.name} />
       </Box>
