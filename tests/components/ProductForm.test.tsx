@@ -231,7 +231,7 @@ describe("ProductForm", () => {
   });
 
 
-  it.only('should be reset the form after submission', async ()=>{
+  it('should be reset the form after submission', async ()=>{
     const { waitForFormToLoad } = renderComponent();
     const { nameInput, priceInput, fillForm, validData, onSubmit } =
       await waitForFormToLoad();
