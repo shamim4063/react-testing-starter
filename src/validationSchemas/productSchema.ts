@@ -2,7 +2,11 @@ import * as z from "zod";
 
 export const productFormSchema = z.object({
   id: z.number().optional(),
-  name: z.string().min(1, "Name is required").max(255),
+  name: z.string()
+        .min(1, "Name is required")
+        .max(255)
+        .transform((val) => val.trim()) // Trim leading and trailing whitespace
+        .refine((val) => val !== '', { message: "Name cannot be empty or whitespace only" }),
   price: z.coerce
     .number({
       required_error: "Price is required",

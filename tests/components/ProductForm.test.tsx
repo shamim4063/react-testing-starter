@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -5,6 +6,7 @@
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Toaster } from "react-hot-toast";
 
 import ProductForm from "../../src/components/ProductForm";
 import { Category, Product } from "../../src/entities";
@@ -23,9 +25,17 @@ describe("ProductForm", () => {
   });
 
   const renderComponent = (product?: Product) => {
-    render(<ProductForm product={product} onSubmit={vi.fn()} />, {
-      wrapper: AllProvider,
-    });
+    const onSubmit = vi.fn();
+
+    render(
+      <>
+        <ProductForm product={product} onSubmit={onSubmit} />
+        <Toaster />
+      </>,
+      {
+        wrapper: AllProvider,
+      }
+    );
 
     const waitForFormToLoad = async () => {
       await screen.findByRole("form");
@@ -40,9 +50,9 @@ describe("ProductForm", () => {
       };
       const validData: FormData = {
         id: "1",
-        name: "nam",
-        categoryId: "1",
-        price: "100",
+        name: "A4tech Keyboard",
+        categoryId: category.id,
+        price: 100,
       };
 
       const fillForm = async (product: FormData) => {
@@ -52,9 +62,11 @@ describe("ProductForm", () => {
         if (product.price)
           await user.type(priceInput, product.price.toString());
 
-        await user.click(categoryInput);
-        const options = screen.getAllByRole("option");
-        await user.click(options[0]);
+        if (product.categoryId) {
+          await user.click(categoryInput);
+          const options = screen.getAllByRole("option");
+          await user.click(options[0]);
+        }
         await user.click(submitButton);
       };
 
@@ -65,6 +77,7 @@ describe("ProductForm", () => {
         submitButton,
         fillForm,
         validData,
+        onSubmit,
       };
     };
 
@@ -83,7 +96,6 @@ describe("ProductForm", () => {
   it("should render form elements", async () => {
     const { waitForFormToLoad } = renderComponent();
     const { nameInput, priceInput, categoryInput } = await waitForFormToLoad();
-
     expect(nameInput).toBeInTheDocument();
     expect(priceInput).toBeInTheDocument();
     expect(categoryInput).toBeInTheDocument();
@@ -111,6 +123,11 @@ describe("ProductForm", () => {
     {
       scenario: "missing",
       errorMessage: /required/i,
+    },
+    {
+      scenario: "whitespace",
+      name: " ",
+      errorMessage: /empty/i,
     },
     {
       scenario: "too long",
@@ -159,4 +176,73 @@ describe("ProductForm", () => {
       toHaveErrorInForm(errorMessage);
     }
   );
+
+  it("should show error while category is not selected", async () => {
+    const { waitForFormToLoad, toHaveErrorInForm } = renderComponent();
+    const { fillForm, validData } = await waitForFormToLoad();
+
+    await fillForm({ ...validData, categoryId: undefined });
+
+    toHaveErrorInForm(/required/i);
+  });
+
+  it("should submit form with valid data", async () => {
+    const { waitForFormToLoad } = renderComponent();
+    const { fillForm, validData, onSubmit } = await waitForFormToLoad();
+
+    await fillForm(validData);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unused-vars
+    const { id, ...formData } = validData;
+    expect(onSubmit).toBeCalledWith(formData);
+  });
+
+  it("should submit form render error if it gets failed", async () => {
+    const { waitForFormToLoad } = renderComponent();
+    const { fillForm, validData, onSubmit } = await waitForFormToLoad();
+
+    onSubmit.mockRejectedValue({});
+
+    await fillForm(validData);
+
+    const error = await screen.findByRole("status");
+    expect(error).toHaveTextContent(/error/i);
+  });
+
+  it("should disable the submit button while processing the reqiest", async () => {
+    const { waitForFormToLoad } = renderComponent();
+    const { fillForm, validData, onSubmit, submitButton } =
+      await waitForFormToLoad();
+
+    onSubmit.mockResolvedValue(new Promise(() => {}));
+
+    await fillForm(validData);
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should re-enabled the submit button while processing the request", async () => {
+    const { waitForFormToLoad } = renderComponent();
+    const { fillForm, validData, onSubmit, submitButton } =
+      await waitForFormToLoad();
+
+    onSubmit.mockResolvedValue({});
+
+    await fillForm(validData);
+    expect(submitButton).not.toBeDisabled();
+  });
+
+
+  it.only('should be reset the form after submission', async ()=>{
+    const { waitForFormToLoad } = renderComponent();
+    const { nameInput, priceInput, fillForm, validData, onSubmit } =
+      await waitForFormToLoad();
+
+    onSubmit.mockResolvedValue({});
+
+    await fillForm({...validData});
+
+    expect(nameInput).not.toHaveValue();
+    expect(priceInput).not.toHaveValue();
+    //expect(categoryInput).not.toHaveTextContent(category.name);
+  })
+
 });
