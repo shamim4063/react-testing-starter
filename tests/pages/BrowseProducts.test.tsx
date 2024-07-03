@@ -5,7 +5,7 @@ import { Category, Product } from '../../src/entities';
 import BrowseProducts from "../../src/pages/BrowseProductsPage";
 import AllProvider from '../Allprovider';
 import { db, getProductsByCategory } from '../mocks/db';
-import { simulateDelay, simulateError } from '../utility/simulate.util';
+import { simulateDelay, simulateError } from '../utils';
 
 describe('BrowseProducts', () => {
     const categories: Array<Category> = [];
